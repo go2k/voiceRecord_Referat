@@ -43,24 +43,62 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                if (checkPermission()) {
+                    AudioSavePathInDevice = Environment.getExternalStorageDirectory().getAbsolutePath().toString() + "/" + "Audiorecording.3gp";
+                    mediaRecorder();
+                    try {
+                        mediaRecorder.prepare();
+                        mediaRecorder.start();
+                        btnRecord.setEnabled(false);
+                        btnPlay.setEnabled(false);
+                        btnStop.setEnabled(true);
+                        btnStopPlayRecording.setEnabled(false);
+                        Toast.makeText(MainActivity.this, "start record", Toast.LENGTH_LONG).show();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    requestPermission();
+                }
 
             }
         });
 
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+
+            }
+        });
 
         btnStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-
-
+                mediaRecorder.stop();
+                btnStop.setEnabled(false);
+                btnPlay.setEnabled(true);
+                btnRecord.setEnabled(true);
+                btnStopPlayRecording.setEnabled(true);
             }
         });
 
         btnPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) throws IllegalArgumentException, SecurityException, IllegalStateException {
+                btnStop.setEnabled(false);
+                btnRecord.setEnabled(false);
+                btnStopPlayRecording.setEnabled(true);
+                btnPlay.setEnabled(false);
+                mediaPlayer = new MediaPlayer();
+                try {
+                    mediaPlayer.setDataSource(AudioSavePathInDevice);
+                    mediaPlayer.prepare();
+                    mediaPlayer.start();
+                    Toast.makeText(MainActivity.this,"playing", Toast.LENGTH_LONG).show();
 
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
 
             }
@@ -69,13 +107,28 @@ public class MainActivity extends AppCompatActivity {
         btnStopPlayRecording.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-
-
+                btnStop.setEnabled(false);
+                btnRecord.setEnabled(true);
+                btnStopPlayRecording.setEnabled(false);
+                btnPlay.setEnabled(true);
+                if (mediaPlayer != null) {
+                    mediaPlayer.stop();
+                    mediaPlayer.release();
+                    mediaRecorder();
+                }
             }
         });
 
 
+    }
+
+    private void mediaRecorder() {
+
+        mediaRecorder = new MediaRecorder();
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mediaRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+        mediaRecorder.setOutputFile(AudioSavePathInDevice);
     }
 
     private void requestPermission() {
